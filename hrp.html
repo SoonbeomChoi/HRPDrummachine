@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sequencer</title>
+    <script type="text/javascript" src="./NexusUI.js"></script>
+    <script type="text/javascript" src="./Tone.js"></script>
+    <style>
+        html,body { height : 100%;  width : 100%;  margin : 0px; padding : 0px;  }
+    </style>
+</head>
+
+<body>
+    <div id="sequencer" style = "top: 150px; left: 220px; position:fixed"></div>
+    <!--
+    <div id="playButton" style = "top: 760px; left: 895px; position:fixed"></div>
+    <div id="stopButton" style = "top: 760px; left: 1007.5px; position:fixed"></div>
+    -->
+    <div id="bpmBox" style = "top: 760px; left: 220px; position:fixed"></div>
+    <div id="resolutionBox" style = "top:760px; left: 557.5px; position:fixed"></div>
+    <div id="knob1" style = "top: 152.5px; left: 140px; position: fixed"></div>
+    <div id="knob2" style = "top: 227.5px; left: 140px; position: fixed"></div>
+    <div id="knob3" style = "top: 302.5px; left: 140px; position: fixed"></div>
+    <div id="knob4" style = "top: 377.5px; left: 140px; position: fixed"></div>
+    <div id="knob5" style = "top: 452.5px; left: 140px; position: fixed"></div>
+    <div id="knob6" style = "top: 527.5px; left: 140px; position: fixed"></div>
+    <div id="knob7" style = "top: 602.5px; left: 140px; position: fixed"></div>
+    <div id="knob8" style = "top: 677.5px; left: 140px; position:fixed"></div>
+    <div id="pad" style = "top: 150px; left: 1150px; position:fixed"></div>
+    <div id="playStop" style = "top: 760px; left: 895px; position:fixed"></div>
+
+
+<script>
+    var AudioContext = window.AudioContext || window.webkitAudioContext;
+
+    var context = new AudioContext();
+
+    var bpm = 120;
+
+
+    var kickPlayer = new Tone.Player("./AB-Electro-Kick 6 Dark2.wav").toMaster();
+    var snarePlayer = new Tone.Player("./BT-Basics-Snare Creeky.wav").toMaster();
+    var clapPlayer = new Tone.Player("./BT-Basics-Clap Dark 909.wav").toMaster();
+    var rimPlayer = new Tone.Player("./BT-Basics-Snare CR78 Rim.wav").toMaster();
+    var openPlayer = new Tone.Player('./open.wav').toMaster();
+    var closedPlayer = new Tone.Player('./BT-Basics-Hat LoFi 2.wav').toMaster();
+    var ridePlayer = new Tone.Player('./BT-Ride-Cymbal Ride 909 Short.wav').toMaster();
+    var subtlePlayer = new Tone.Player('./BT-Basics-Hat Small as a Cell.wav').toMaster();
+
+    //sequencer.on('')
+    var sequencer = new Nexus.Sequencer('#sequencer',{
+        'size' : [900, 600],
+        'mode': 'toggle',
+        'rows': 8,
+        'columns' : 8
+    });
+/*
+    var playButton = new Nexus.TextButton('#playButton', {
+        'size' : [112.5, 85],
+        'mode' : 'button',
+        'text' : 'play',
+        'state' : false
+    });
+    var stopButton = new Nexus.TextButton('#stopButton', {
+        'size' : [112.5, 85],
+        'mode' : 'toggle',
+        'text' : 'stop',
+        'state' : true
+    });
+    */
+
+    var playStop = new Nexus.RadioButton('#playStop', {
+        'size': [225, 85],
+        'numberOfButtons': 2,
+        'active': 1
+    });
+
+    var bpmBox = new Nexus.Number('#bpmBox', {
+        'size' : [332.5, 85],
+        'value' : 120,
+        'min' : 40,
+        'max' : 240,
+        'step' : 1
+    });
+
+    var resolutionBox = new Nexus.Number('#resolutionBox', {
+        'size': [332.5, 85],
+        'value': 1,
+        'min': 1,
+        'max': 4,
+        'step': 1
+    });
+    var knob1 = new Nexus.Dial('#knob1', {
+        'size' : [70, 70],
+        'interaction': 'vertical',
+        'mode': 'relative',
+        'min': 0,
+        'max': 1,
+        'step': 0,
+        'value': 1
+    });
+
+    var knob2 = new Nexus.Dial('#knob2', {
+        'size' : [70, 70],
+        'interaction': 'vertical',
+        'mode': 'relative',
+        'min': 0,
+        'max': 1,
+        'step': 0,
+        'value': 1
+    });
+
+    var knob3 = new Nexus.Dial('#knob3', {
+        'size' : [70, 70],
+        'interaction': 'vertical',
+        'mode': 'relative',
+        'min': 0,
+        'max': 1,
+        'step': 0,
+        'value': 1
+    });
+
+    var knob4 = new Nexus.Dial('#knob4', {
+        'size' : [70, 70],
+        'interaction': 'vertical',
+        'mode': 'relative',
+        'min': 0,
+        'max': 1,
+        'step': 0,
+        'value': 1
+    });
+
+    var knob5 = new Nexus.Dial('#knob5', {
+        'size' : [70, 70],
+        'interaction': 'vertical',
+        'mode': 'relative',
+        'min': 0,
+        'max': 1,
+        'step': 0,
+        'value': 1
+    });
+
+    var knob6 = new Nexus.Dial('#knob6', {
+        'size' : [70, 70],
+        'interaction': 'vertical',
+        'mode': 'relative',
+        'min': 0,
+        'max': 1,
+        'step': 0,
+        'value': 1
+    });
+
+    var knob7 = new Nexus.Dial('#knob7', {
+        'size' : [70, 70],
+        'interaction': 'vertical',
+        'mode': 'relative',
+        'min': 0,
+        'max': 1,
+        'step': 0,
+        'value': 1
+    });
+
+    var knob8 = new Nexus.Dial('#knob8', {
+        'size' : [70, 70],
+        'interaction': 'vertical',
+        'mode': 'relative',
+        'min': 0,
+        'max': 1,
+        'step': 0,
+        'value': 1
+    });
+
+    var pad = new Nexus.Position('#pad', {
+        'size': [650,600],
+        'mode': 'absolute',
+        'x': 0.,
+        'minX': 0,
+        'maxX': 1,
+        'stepX': 0,
+        'y': 0,
+        'minY': 0,
+        'maxY' : 1,
+        'stepY': 0
+
+    });
+
+
+
+    var kickToReverb = kickPlayer.send('reverb', 1);
+    var snareToReverb = snarePlayer.send('reverb', 1);
+    var clapToReverb = clapPlayer.send('reverb', 1);
+    var rimToReverb = rimPlayer.send('reverb', 1);
+    var openToReverb = openPlayer.send('reverb',1);
+    var closedToReverb = closedPlayer.send('reverb',1);
+    var rideToReverb = ridePlayer.send('reverb',1);
+    var subtleToReverb = subtlePlayer.send('reverb', 1);
+    var kickToDelay = kickPlayer.send('delay', 1);
+    var snareToDelay = snarePlayer.send('delay', 1);
+    var clapToDelay = clapPlayer.send('delay', 1);
+    var rimToDelay = rimPlayer.send('delay', 1);
+    var openToDelay = openPlayer.send('delay',1);
+    var closedToDelay = closedPlayer.send('delay',1);
+    var rideToDelay = ridePlayer.send('delay',1);
+    var subtleToDelay = subtlePlayer.send('delay', 1);
+
+    var reverb = new Tone.Freeverb().receive('reverb').toMaster();
+    reverb.wet.value = pad.x;
+
+    var delay = new Tone.FeedbackDelay().receive('delay').toMaster();
+    delay.wet.value = pad.y;
+
+    kickPlayer.volume.value = knob1.value * 96 - 96;
+    snarePlayer.volume.value = knob2.value * 96 - 96;
+    clapPlayer.volume.value = knob3.value * 96 - 96;
+    rimPlayer.volume.value = knob4.value * 96 - 96;
+    openPlayer.volume.value = knob5.value * 96 -96;
+    closedPlayer.volume.value = knob6.value * 96 -96;
+    ridePlayer.volume.value = knob7.value * 96 - 96;
+    subtlePlayer.volume.value = knob8.value * 96 -96;
+
+
+
+    bpmBox.on('change', function(v){
+        bpm = bpmBox.value;
+    });
+
+    resolutionBox.on('change', function(v){
+        bpm = bpmBox.value * resolutionBox.value;
+        sequencer.columns = 8 * resolutionBox.value;
+    });
+/*
+    playButton.on('change', function(v){
+        if (playButton.state == false) {}
+        else sequencer.start(60000/bpm);
+    });
+
+    stopButton.on('change', function(v){
+        sequencer.stop();
+    });*/
+
+    playStop.on('change', function(v){
+        if (playStop.active == 0){
+            sequencer.start(60000/bpm);
+        }
+        else sequencer.stop()
+    });
+
+    sequencer.on('step', function(v){
+        if (sequencer.matrix.pattern[0][sequencer.stepper.value] == 1) kickPlayer.start();
+        if (sequencer.matrix.pattern[1][sequencer.stepper.value] == 1) snarePlayer.start();
+        if (sequencer.matrix.pattern[2][sequencer.stepper.value] == 1) clapPlayer.start();
+        if (sequencer.matrix.pattern[3][sequencer.stepper.value] == 1) rimPlayer.start();
+        if (sequencer.matrix.pattern[4][sequencer.stepper.value] == 1) openPlayer.start();
+        if (sequencer.matrix.pattern[5][sequencer.stepper.value] == 1) closedPlayer.start();
+        if (sequencer.matrix.pattern[6][sequencer.stepper.value] == 1) ridePlayer.start();
+        if (sequencer.matrix.pattern[7][sequencer.stepper.value] == 1) subtlePlayer.start();
+    });
+
+    knob1.on("change", function(v){
+        kickPlayer.volume.value = knob1.value * 96 - 96;
+    });
+
+    knob2.on("change", function(v){
+        snarePlayer.volume.value = knob2.value * 96 - 96;
+    });
+
+    knob3.on("change", function(v){
+        clapPlayer.volume.value = knob3.value * 96 - 96;
+    });
+
+    knob4.on("change", function(v){
+        rimPlayer.volume.value = knob4.value * 96 - 96;
+    });
+
+    knob5.on("change", function(v){
+        openPlayer.volume.value = knob5.value * 96 - 96;
+    });
+
+    knob6.on("change", function(v){
+        closedPlayer.volume.value = knob6.value * 96 - 96;
+    });
+
+    knob7.on("change", function(v){
+        ridePlayer.volume.value = knob7.value * 96 - 96;
+    });
+
+    knob8.on("change", function(v){
+        subtlePlayer.volume.value = knob8.value * 96 - 96;
+    });
+
+
+    pad.on("change", function(v){
+        reverb.wet.value = pad.x;
+        delay.wet.value = pad.y;
+    });
+
+
+
+
+
+</script>
+
+<style>
+    body{
+        background: rgb(0,0,0);
+    }
+</style>
+
+</body>
+</html>
