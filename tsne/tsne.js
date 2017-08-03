@@ -100,8 +100,14 @@ function draw(){
 }
 
 function getDataInDisplay(){
-  // todo: implement r tree
-  return data;
+  var maxX = displayInfo.x + 1 / displayInfo.z;
+  var maxY = displayInfo.y + 1 / displayInfo.z;
+  return dataTree.search({
+    minX:displayInfo.x,
+    minY:displayInfo.y,
+    maxX:maxX,
+    maxY:maxY
+  });
 }
 
 function getPosition(e){
@@ -164,14 +170,24 @@ function canvasMouseUp(){
 }
 
 function canvasMouseWheel(e){
+  var prevZ = displayInfo.z;
+  var prevCenterMargin = 0.5 / displayInfo.z;
+
   if (e.deltaY > 0) {
     displayInfo.z *= 0.9;
   } else if (e.deltaY < 0) {
     displayInfo.z /= 0.9;
   }
+
+  var centerMargin = 0.5 / displayInfo.z;
+  console.log(prevCenterMargin);
+  console.log(centerMargin);
+  displayInfo.x -= (centerMargin - prevCenterMargin);
+  displayInfo.y -= (centerMargin - prevCenterMargin);
 }
 
 function scrollDisplay(x, y) {
+  console.log(x, y);
   var canvas = canvasContext.canvas;
   var minCanvasSideLength = canvas.width < canvas.height ? canvas.width : canvas.height;
   displayInfo.x -= x / minCanvasSideLength / displayInfo.z;
