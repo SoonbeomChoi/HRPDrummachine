@@ -1,6 +1,8 @@
 var DRAG_MODE_NONE = 0;
 var DRAG_MODE_SELECT = 1;
 var DRAG_MODE_SCROLL = 2;
+
+var nSelection = 4;
 var dataTree = null;
 var canvasContext = null;
 var displayInfo = {
@@ -14,7 +16,8 @@ var prevMousePosition = {
 };
 var dragMode = DRAG_MODE_NONE;
 var data = [];
-var selectedDataIndex = -1;
+var selectedDataIndices = [];
+var draggingSelection = -1;
 var responsiveCircleRadius = 20;
 var normalDPSize = 4;
 
@@ -53,7 +56,9 @@ function indexRTree() {
 
 function dataLoaded() {
   indexRTree();
-  changeSelectedDataIndex(0);
+  for (var i = 0; i < nSelection; i++){
+    changeSelectedDataIndex(i, i);
+  }
   canvas = document.getElementById('canvas');
   canvasContext = canvas.getContext('2d');
   canvas.addEventListener('mousedown', canvasMouseDown);
@@ -75,15 +80,14 @@ function draw(){
     var dp = dataInDisplay[i];
     var x = (dp.x - displayInfo.x) * displayInfo.z * minCanvasSideLength;
     var y = (dp.y - displayInfo.y) * displayInfo.z * minCanvasSideLength;
-    if(dp.i == selectedDataIndex){
+    if(selectedDataIndices.includes(dp.i)){
       //draw selected point
       // temp
       canvasContext.fillStyle = 'rgb(' + parseInt(dp.r * 255) + ', ' + parseInt(dp.g * 255) + ', ' + parseInt(dp.b * 255) + ')';
       canvasContext.strokeStyle = canvasContext.fillStyle;
       canvasContext.fillRect(x - normalDPSize, y - normalDPSize, 2 * normalDPSize, 2 * normalDPSize);
       canvasContext.beginPath();
-      if (dragMode == DRAG_MODE_SELECT) {
-
+      if (dp.i == selectedDataIndices[draggingSelection]) {
         canvasContext.arc(prevMousePosition.x, prevMousePosition.y, responsiveCircleRadius, 0, 6.3, false);
       } else {
         canvasContext.arc(x, y, responsiveCircleRadius, 0, 6.3, false);
@@ -129,8 +133,9 @@ function getNearestDataIndex(p){
   return data.indexOf(knn(dataTree, x, y, 1)[0]);
 }
 
-function changeSelectedDataIndex(i) {
-  selectedDataIndex = i;
+function changeSelectedDataIndex(i, j) {
+  console.log(i, j);
+  selectedDataIndices[i] = j;
   //play
 }
 
@@ -139,15 +144,20 @@ function canvasMouseDown(e){
   var p = getPosition(e);
   var canvas = canvasContext.canvas;
   var minCanvasSideLength = canvas.width < canvas.height ? canvas.width : canvas.height;
-  var dp = data[selectedDataIndex];
-  var x = (dp.x - displayInfo.x) * displayInfo.z * minCanvasSideLength;
-  var y = (dp.y - displayInfo.y) * displayInfo.z * minCanvasSideLength;
 
-  //if inside the responsive circle
-  if (getDistance(p.x, p.y, x, y) < responsiveCircleRadius) {
-    dragMode = DRAG_MODE_SELECT;
-  } else {
-    dragMode = DRAG_MODE_SCROLL;
+  for (var i = 0; i < nSelection; i++) {
+    var dp = data[selectedDataIndices[i]];
+    var x = (dp.x - displayInfo.x) * displayInfo.z * minCanvasSideLength;
+    var y = (dp.y - displayInfo.y) * displayInfo.z * minCanvasSideLength;
+
+    //if inside the responsive circle
+    if (getDistance(p.x, p.y, x, y) < responsiveCircleRadius) {
+      dragMode = DRAG_MODE_SELECT;
+      draggingSelection = i;
+      break;
+    } else {
+      dragMode = DRAG_MODE_SCROLL;
+    }
   }
 }
 
@@ -156,8 +166,8 @@ function canvasMouseDragged(e){
   var p = getPosition(e);
   if (dragMode == DRAG_MODE_SELECT) {
     nearestDataIndex = getNearestDataIndex(p);
-    if (nearestDataIndex != selectedDataIndex) {
-      changeSelectedDataIndex(nearestDataIndex);
+    if (!(selectedDataIndices.includes(nearestDataIndex))) {
+      changeSelectedDataIndex(draggingSelection, nearestDataIndex);
     }
   } else if (dragMode == DRAG_MODE_SCROLL) {
     scrollDisplay(p.x - prevMousePosition.x, p.y - prevMousePosition.y);
@@ -167,6 +177,7 @@ function canvasMouseDragged(e){
 
 function canvasMouseUp(){
   dragMode = DRAG_MODE_NONE;
+  draggingSelection = -1;
 }
 
 function canvasMouseWheel(e){
@@ -180,14 +191,11 @@ function canvasMouseWheel(e){
   }
 
   var centerMargin = 0.5 / displayInfo.z;
-  console.log(prevCenterMargin);
-  console.log(centerMargin);
   displayInfo.x -= (centerMargin - prevCenterMargin);
   displayInfo.y -= (centerMargin - prevCenterMargin);
 }
 
 function scrollDisplay(x, y) {
-  console.log(x, y);
   var canvas = canvasContext.canvas;
   var minCanvasSideLength = canvas.width < canvas.height ? canvas.width : canvas.height;
   displayInfo.x -= x / minCanvasSideLength / displayInfo.z;
